@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <%- include("../partials/header.ejs") %>
+  <%- include("../partials/nav.ejs") %>
+
+  <body>
+    <div class="sign-up content">
+        <form id="sign-up-form" action="/sign-up" method="POST">
+            <label for="username">Username </label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+            <label for="passwordConfirmation">Confirm password</label>
+            <input type="password" id="password-confirmation" name="passwordConfirmation" required>
+            <button>Sign up</button>
+        </form>
+    </div>
+
+    <script>
+        // check if user already exists, or if passwords match
+        const handleSignUp = async () => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const passwordConfirmation = document.getElementById('password-confirmation').value;
+    
+            const response = await fetch('/auth/sign-up', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                  username,
+                  password,
+                  passwordConfirmation,
+              }),
+            });
+
+            if (response.ok) {
+              alert("Account created")
+              window.location.href = '/'
+            } else {
+              const { errors } = await response.json();
+              alert(`${errors[0].msg}`);
+            }
+        };
+    
+        document.getElementById('sign-up-form').addEventListener('submit', (event) => {
+            console.log("sign in submit called")
+            event.preventDefault();
+            handleSignUp();
+        });
+    </script>
+  </body>
+  
+  <%- include("../partials/footer.ejs") %>
+
+</html>

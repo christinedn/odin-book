@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <%- include("./partials/header.ejs") %>
+  <%- include("./partials/nav.ejs") %>
+
+  <body>
+    <br>
+    <h3> You are signed in as <%= user.username %> </h3>
+
+    <% if (posts && posts.length > 0) { %>
+      <% posts.forEach(post => { %>
+        <div class="posts content">
+          <h4 class="title">title: <%= post.title %></h4>
+          <p class="content">content: <%= post.content %> </p>
+          <p class="likes">likes: <%= post.likes %> </p>
+          <p class="comments">comments: <%= post.comments %> </p>
+          <p class="created at">created at: <%= post.createdAt %> </p>
+          <p class="author">author: <%= post.author %> </p>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <p>There are no posts to display...</p>
+    <% } %>
+  </body>
+  
+  <%- include("./partials/footer.ejs") %>
+
+</html>

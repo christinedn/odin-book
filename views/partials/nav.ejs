@@ -1,0 +1,18 @@
+<nav>
+    <div class="site-title">
+        <a href="/"><h1>Odin Book</h1></a>
+    </div>
+<ul>
+    <% if (user) { %>
+        <li><a href="/discover">Discover</a></li>
+        <li><a href="/post/create">Create a post</a></li>
+        <li><a href="/user/profile">Profile</a></li>
+        <li><a href="/user/notifications">Notifications</a></li>
+        <li><a href="/user/inbox">Inbox</a></li>
+        <li><a href="/auth/log-out">Log out</a></li>
+      <% } else { %>
+        <li><a href="/auth/log-in">Log in</a></li>
+        <li><a href="/auth/sign-up">Sign up</a></li>
+      <% } %>
+</ul>
+</nav>

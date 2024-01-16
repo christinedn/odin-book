@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <%- include("./partials/header.ejs") %>
+  <%- include("./partials/nav.ejs") %>
+
+  <body>
+    <br>
+    <% if (users && users.length > 0) { %>
+      <% users.forEach(user => { %>
+        <div class="user content">
+            <h4 class="username ">username: <%= user.username %></h4>
+            <p class="member-since">member since: <%= user.memberSince %></p>
+            <button class='follow-btn' data-id="<%= user._id %>">Follow</button>
+          </div>
+        </div>
+      <% }) %>
+    <% } %>
+
+    <script>
+      const followBtns = document.querySelectorAll('button.follow-btn')
+      followBtns.forEach(button => {
+        button.addEventListener('click', (e) => {
+          console.log(`${button.dataset.id}`);
+        });
+      });
+    </script>
+  </body>
+  
+  <%- include("./partials/footer.ejs") %>
+
+</html>

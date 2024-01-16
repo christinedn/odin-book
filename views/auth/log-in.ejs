@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <%- include("../partials/header.ejs") %>
+  <%- include("../partials/nav.ejs") %>
+
+  <body>
+    <div class="log-in content">
+        <form id="log-in-form" action="/log-in" method="POST">
+            <label for="username">Username </label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required/>
+            <button>Log in</button>
+        </form>
+    </div>
+
+    <script>
+      // authenticate user
+      const handleLogin = async () => {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+    
+        const response = await fetch('/auth/log-in', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+        });
+    
+        if (response.ok) {
+            window.location.href = '/';
+        } else {
+            const { error } = await response.json();
+            alert(`${error}`);
+        }
+      };
+  
+      // Add event listener to form submission
+      document.getElementById('log-in-form').addEventListener('submit', (event) => {
+          event.preventDefault();
+          handleLogin();
+      });
+    </script>
+  </body>
+  
+  <%- include("../partials/footer.ejs") %>
+
+</html>
