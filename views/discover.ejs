@@ -20,7 +20,10 @@
       const followBtns = document.querySelectorAll('button.follow-btn')
       followBtns.forEach(button => {
         button.addEventListener('click', (e) => {
-          console.log(`${button.dataset.id}`);
+          e.preventDefault()
+          
+          alert('Request sent')
+          
         });
       });
     </script>

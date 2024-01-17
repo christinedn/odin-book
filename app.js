@@ -6,8 +6,8 @@ var logger = require('morgan');
 const session = require('express-session');
 const passportSetup = require('./config/passport-setup');
 const passport = require('passport');
-
-
+require('dotenv').config()
+const mongoose = require('mongoose')
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -15,10 +15,6 @@ const authRouter = require('./routes/auth')
 const postsRouter = require('./routes/post')
 const discoverRouter = require('./routes/discover')
 const { currentUserMiddleware, postsMiddleware, usersMiddleware } = require('./middleware/dbMiddleware')
-
-
-require('dotenv').config()
-const mongoose = require('mongoose')
 
 var app = express();
 
@@ -38,7 +34,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(session({ secret: process.env.cookieKey, resave: false, saveUninitialized: true }));
+app.use(session({ secret: process.env.COOKIE_KEY, resave: false, saveUninitialized: true }));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -50,7 +46,8 @@ app.use('/auth', authRouter)
 app.use('/post', postsRouter)
 app.use('/users', usersRouter);
 app.use(discoverRouter);
-
+// static files served from /socket directory
+app.use('/socket', express.static('socket'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
