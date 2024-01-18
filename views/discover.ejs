@@ -2,31 +2,50 @@
 <html>
   <%- include("./partials/header.ejs") %>
   <%- include("./partials/nav.ejs") %>
+  <script src="/socket.io/socket.io.js"></script>
 
   <body>
     <br>
+    <!-- TODO: do not display current user on the discover page -->
+    follower username: <%= follower.username %>, follower id: <%= follower._id %>
     <% if (users && users.length > 0) { %>
       <% users.forEach(user => { %>
         <div class="user content">
             <h4 class="username ">username: <%= user.username %></h4>
             <p class="member-since">member since: <%= user.memberSince %></p>
-            <button class='follow-btn' data-id="<%= user._id %>">Follow</button>
+            <button class='follow-btn' data-follower-id="<%= follower._id %>" data-followee-id="<%= user._id %>">Follow <%= user._id %> (<%= user.username %>)</button>
           </div>
         </div>
       <% }) %>
     <% } %>
 
     <script>
+      // TODO: separate the client socket.io code into a separate file?
       const followBtns = document.querySelectorAll('button.follow-btn')
+      // initialize here because of scope
+      const followerId = '<%= follower._id %>'
+
+      // event listener for each follow button
       followBtns.forEach(button => {
         button.addEventListener('click', (e) => {
           e.preventDefault()
           
-          alert('Request sent')
+          const followerId = e.target.getAttribute('data-follower-id');
+          const followeeId = e.target.getAttribute('data-followee-id');
+          console.log(`followerId: ${followerId}`)
+          console.log(`followeeId: ${followeeId}`)
+
+          // send to server
+          socket.emit('send-follow-request', { followerId: followerId, followeeId: followeeId });
+          
+          alert('Follow request sent');
           
         });
       });
     </script>
+
+    <script src="/socket/clientIndex.js"></script>
+    
   </body>
   
   <%- include("./partials/footer.ejs") %>

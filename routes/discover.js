@@ -4,8 +4,8 @@ const { authUser } = require('../middleware/basicAuth')
 
 
 // TODO: user should not be able to access this page if not logged in
-router.get('/discover', function(req, res, next) {
-  res.render('discover',  {title: 'Discover', users: req.users } );
+router.get('/discover', authUser, function(req, res, next) {
+  res.render('discover',  {title: 'Discover', users: req.users, follower: req.user } );
 });
 
 module.exports = router;
