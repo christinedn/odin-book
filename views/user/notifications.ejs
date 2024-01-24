@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+  <%- include("../partials/header.ejs") %>
+  <%- include("../partials/nav.ejs") %>
+  <script src="/socket.io/socket.io.js"></script>
+  <body>
+    <br>
+    <h3> You are signed in as: <%= user.username %> <%= user._id %></h3>
+    <!-- TODO: make user a hyperlink so that the profile can be visited -->
+    <!-- TODO: change the status to read after viewing notifications -->
+    <div class="notification content">
+        <% if (notifications && notifications.length > 0) { %>
+          <% notifications.forEach(notification => { %>
+            <!-- only display the notifiations that matches the currentUser's id -->
+            <% if (notification.recipient.toString() === user._id.toString()) { %>
+              <!-- find the username of the sender -->
+              <% const senderUser = users.find(user => user._id.toString() === notification.sender.toString()) %> 
+              <!-- follow request notification -->
+              <% if (notification.type === 'follow-request') { %>
+                <p><%= notification.message %> <%= senderUser ? senderUser.username : 'Unknown Sender' %></p>
+                <button class="accept-btn" data-sender-id="<%= notification.sender %>">Accept</button>
+                <button class="decline-btn" data-id-notif="<%= notification._id %>" data-sender-id="<%= notification.sender %>">Decline</button>
+              <!-- follow accepted notification or like notification -->
+              <!-- TODO: add a hyperlink that directs user to the post details -->
+              <% } else if (notification.type === 'follow-request-accepted' || notification.type === 'like' || notification.type === 'comment') { %>
+                <p><%= senderUser ? senderUser.username : 'Unknown Sender' %> <%= notification.message %> </p>
+                <button class="del-notif-btn" data-id-notif="<%= notification._id %>">Mark as read</button>
+              <% } %>
+            <% } %>
+          <% }) %>
+        <% } else { %>
+          <p>There are no notifications to display </p>
+        <% } %>
+    </div>
+    <br>
+    <script>
+      //TODO: chage e.target.getAttribute to button.getAttribute to avoid errors, or do not use getAttribute completely and pass in the id within the endpoint URL
+      const socket = io.connect('http://localhost:3000');
+      const acceptBtns = document.querySelectorAll('button.accept-btn')
+      const declineBtns = document.querySelectorAll('button.decline-btn')
+      const delNotifBtn = document.querySelectorAll('button.del-notif-btn')
+      const recipientId = '<%= user._id %>'
+
+      // accept follower request
+      acceptBtns.forEach(button => {
+        button.addEventListener('click', (e) => {
+          e.preventDefault()
+          const followerId = e.target.getAttribute('data-sender-id')
+          console.log(`followerId: ${followerId}`)
+          console.log(`followeeId: ${recipientId}`)
+
+          // send to server
+          socket.emit('accept-follow-request', {followerId: followerId, followeeId: recipientId})
+
+          alert('You have accepted the follow request')
+
+          // refresh the page
+          window.location.href = window.location.href;
+
+        })
+      })
+
+      // decline follower request
+      declineBtns.forEach(button => {
+        button.addEventListener('click', (e) => {
+          e.preventDefault()
+          const notifId = e.target.getAttribute('data-id-notif')
+          console.log(notifId)
+          const endpoint = `/user/notification/${notifId}`
+          // set status in follower schema to declined 
+          const followeeId = recipientId
+          const followerId = e.target.getAttribute('data-sender-id')
+          const requestData = {
+            followeeId,
+            followerId
+          }
+          fetch(endpoint, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+          })
+          .then(response => response.json())
+          .then(data => console.log('PUT request successful', data))
+          .catch(err => console.log(err))
+
+          console.log('now attempting to delete notification from db')
+          deleteNotifFromDb(notifId)
+        })
+      })
+
+      // mark notification as read
+      delNotifBtn.forEach(button => {
+        button.addEventListener('click', (e) => {
+          e.preventDefault()
+          const notifId = e.target.getAttribute('data-id-notif')
+          
+          console.log(`notification id: ${notifId}`)
+
+          deleteNotifFromDb(notifId)
+        })
+      })
+
+      // delete notification from db
+      function deleteNotifFromDb(notifId) {
+        console.log('now calling deleteNotifFromDb function')
+        // send notifId to backend and delete from db
+        const endpoint = `/user/notification/${notifId}`
+
+        // TODO: DRY, put the delete notification in a function?
+        fetch(endpoint, {
+          method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => window.location.href = data.redirect)
+        .catch(err => console.log(err))
+      }
+    </script>
+
+  </body>
+  
+  <%- include("../partials/footer.ejs") %>
+
+</html>

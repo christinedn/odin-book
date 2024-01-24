@@ -7,15 +7,15 @@ const followerSchema = new Schema({
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'User' 
     }, 
-    following: {
+    followee: {
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'User' 
     },
-    isPending: { 
-        type: Boolean,
-        default: true
+    status: { // accepted, declined, pending
+        type: String,
+        default: 'pending',
     },
 }, { timestamp: true })
 
-const Follower = mongoose.model('Message', followerSchema)
+const Follower = mongoose.model('Follower', followerSchema)
 module.exports = Follower

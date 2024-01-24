@@ -18,13 +18,15 @@ const notificationSchema = new Schema({
         default: 'unread' // 'unread' or 'read'
     },
     type: {
-        type: String, // type of notification, e.g. 'follow', 'like', 'comment'
+        type: String, // type of notification, e.g. 'follow request', 'follow request accepted', 'like', 'comment'
     },
     contentID: {
         type: mongoose.Schema.Types.ObjectId, // used to redirect to corresponding notification
+        required: false,
     }
     
 }, { timestamp: true })
 
-const Notification = mongoose.model('Notification', notificationSchema)
+// OverwriteModelError: Cannot overwrite `Notification` model once compiled. --> check if model exists, then create it
+const Notification = mongoose.models.Notification || mongoose.model('Notification', notificationSchema)
 module.exports = Notification

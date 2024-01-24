@@ -1,4 +1,5 @@
 // TODO: link should not be hardcoded?
+// TODO: move this back to discover.ejs
 const socket = io.connect('http://localhost:3000');
 
 socket.on('connect', () => {

@@ -10,11 +10,11 @@ require('dotenv').config()
 const mongoose = require('mongoose')
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+var userRouter = require('./routes/user'); // profile, following, followers, notifications, posts, inbox
 const authRouter = require('./routes/auth')
 const postsRouter = require('./routes/post')
 const discoverRouter = require('./routes/discover')
-const { currentUserMiddleware, postsMiddleware, usersMiddleware } = require('./middleware/dbMiddleware')
+const { currentUserMiddleware, postsMiddleware, usersMiddleware, notificationsMiddleware, likesMiddleware, commentsMiddleware } = require('./middleware/dbMiddleware')
 
 var app = express();
 
@@ -41,10 +41,13 @@ app.use(passport.session());
 app.use(currentUserMiddleware)
 app.use(postsMiddleware)
 app.use(usersMiddleware)
+app.use(notificationsMiddleware)
+app.use(likesMiddleware)
+app.use(commentsMiddleware)
 app.use('/', indexRouter);
 app.use('/auth', authRouter)
 app.use('/post', postsRouter)
-app.use('/users', usersRouter);
+app.use('/user', userRouter);
 app.use(discoverRouter);
 // static files served from /socket directory
 app.use('/socket', express.static('socket'));

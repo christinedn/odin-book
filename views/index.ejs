@@ -3,24 +3,248 @@
   <%- include("./partials/header.ejs") %>
   <%- include("./partials/nav.ejs") %>
   <script src="/socket.io/socket.io.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
   <body>
     <br>
-    <h3> You are signed in as <%= user.username %> </h3>
+    <p> You are signed in as <%= user.username %> </p>
+    <hr>  
 
+    <!-- TODO: display the 3 most recent comments only, and only display all the coments in a details page -->
+    <!-- TODO: inclue a hyperlink that directs to user profile -->
+    <!-- TODO: only show posts from the people that the current user is following -->
     <% if (posts && posts.length > 0) { %>
       <% posts.forEach(post => { %>
         <div class="posts content">
-          <h4 class="title">title: <%= post.title %></h4>
-          <p class="content">content: <%= post.content %> </p>
-          <p class="likes">likes: <%= post.likes %> </p>
-          <p class="comments">comments: <%= post.comments %> </p>
-          <p class="created at">created at: <%= post.createdAt %> </p>
-          <p class="author">author: <%= post.author %> </p>
+          <div class="top-container">
+            <%= post._id %>
+            <h3 class="title"><%= post.title %></h3>
+            <p class="author">@<%= post.author %> </p>
+          </div>
+          <p class="content"><%= post.content %> </p>
+          <p class="created-at"><%= new Date(post.createdAt).toLocaleString() %> </p>
+          <!-- TODO: change to variable name to numLikes and numComments? -->
+          <div class="icon-container">
+            <a class="like" data-id-post="<%= post._id %>" data-id-user="<%= user._id %>">
+              <img id="likeIcon" src="<%= likes.some(like => like.userId.toString() === user._id.toString() && like.postId.toString() === post._id.toString()) ? '/images/heart-fill.svg' : '/images/heart-unfill.svg' %>" alt="like icon">
+              <span class="like-count"><%= post.likes %></span>
+            </a>
+          <a class="comment" data-id-post="<%= post._id %>">
+            <img src="/images/comment.svg" alt="comment icon">
+            <span class="comment-count"><%= post.comments %></span>
+          </a>
+          </div>
+          <!-- TODO: pass in comments in router, go through comments, output ones that matches post._id -->
+          <!-- TODO: only display the comments from users that the currUser is following -->
+          <div class="comment content">
+            <div class="post-comments-<%= post._id %>" data-id-post="<%= post._id %>">
+              <% if (comments && comments.length > 0) { %>
+                <% comments.forEach(comment => { %>
+                  <% console.log('commentPostId: ', comment.postId.toString(), 'post._id.toString()', post._id.toString(), comment.postId.toString() === post._id.toString()) %>
+                  <% if (comment.postId.toString() === post._id.toString()) { %>
+                    <% console.log(comment) %>
+                    <p class="comment-element"> <%= comment.author %>: <%= comment.content %></p>
+                  <% } %>
+                <% }) %>
+              <% } %> 
+            </div>
+            <div id="user-comment"> 
+              <br>
+              <form id="comment-form">
+                <label for="comment-text">Add a comment: </label>
+                <!-- issue = value is being retrieved from only one of posts, solution = append post id to comment text so that each post has its own comment textarea  -->
+                <textarea name="comment-text" id="comment-text-<%= post._id %>"></textarea>
+                <button class="submit-comment-btn" 
+                  data-id-post="<%= post._id %>" 
+                  data-id-user="<%= user._id %>"  
+                  data-comment-author="<%= user.username %>" 
+                  data-post-author-id="<%= post.authorID %>">
+                  Submit comment
+                </button>
+              </form>
+            </div>
+          </div>
+          <br>
+          <hr>
         </div>
       <% }) %>
     <% } else { %>
       <p>There are no posts to display...</p>
     <% } %>
+
+    <script>
+      const socket = io.connect('http://localhost:3000');
+      const likeBtn = document.querySelectorAll('a.like')
+      // TODO: implement commentBtn functionality
+      const commentIcon = document.querySelectorAll('a.comment')
+      const commentBtn = document.querySelectorAll('.submit-comment-btn')
+      
+      // TOOD: add comments to be more descriptive for the functions and say what they do
+      // functions for like
+      likeBtn.forEach(button => {
+        button.addEventListener('click', (e) => {
+          e.preventDefault()
+          toggleLike(button)
+        })
+      })
+
+      function handleUnlike(userId, postId) {
+        const endpoint = `/post/${postId}/unlike`
+        const requestData = {
+          userId,
+          postId
+        }
+
+        $.ajax({
+          type: 'DELETE',
+          url: endpoint,
+          contentType: 'application/json',
+          data: JSON.stringify(requestData),
+          success: function(data) {
+            updateLikeCount(postId, data.likes)
+          },
+          error: function(err) {
+            console.log(err)
+          }
+        })
+      }
+
+      function handleLike(userId, postId) {
+        console.log('now running handleLike')
+        const endpoint = `/post/${postId}/like`
+        const requestData = {
+          userId,
+          postId
+        }
+        $.ajax({
+          type: 'POST',
+          url: endpoint,
+          contentType: 'application/json',
+          data: JSON.stringify(requestData),
+          success: function(data) {
+            updateLikeCount(postId, data.likes)
+          },
+          error: function(err) {
+            console.log(err)
+          }
+        })
+      }
+
+      // used to reference html element and update count
+      function updateLikeCount(postId, newLikeCount) {
+        const likeCountElement = $(`a.like[data-id-post="${postId}"] span.like-count`)
+        if (likeCountElement.length > 0) { // TOOD: ??? why > 0
+          likeCountElement.text(newLikeCount);
+        }
+      }
+
+      function toggleLike(elem) {
+        const likeIcon = elem.querySelector('#likeIcon')
+        const postId = elem.dataset.idPost;
+        const userId = elem.dataset.idUser;
+        let isLiked = likeIcon.src.includes('heart-fill.svg');
+
+        // reference the icon to check if the current post has been liked or not
+        if (isLiked) {
+          handleUnlike(userId, postId)
+          likeIcon.src = '/images/heart-unfill.svg';
+          console.log(`You have unliked the post with id ${postId}`);
+          
+        } else {
+          handleLike(userId, postId)
+          likeIcon.src = '/images/heart-fill.svg';
+          console.log(`You have liked the post with id ${postId}`);
+          // TODO: send notification to user
+          socket.emit('liked-post', { userId: userId, postId: postId })
+          
+        }
+      }
+
+      // handling comment functionality 
+      commentBtn.forEach(button => {
+        button.addEventListener('click', (e) => {
+          e.preventDefault()
+          var commentContent = document.getElementById("comment-text-" + button.dataset.idPost).value
+          var postAuthor = button.dataset.postAuthorId
+          console.log(`this is the postAuthor ${postAuthor}`)
+          const endpoint = `/post/${button.dataset.idPost}/comment`
+          const requestData = {
+            commentAuthor: button.dataset.commentAuthor,
+            postId: button.dataset.idPost,
+            commentContent: commentContent,
+            userId: button.dataset.idUser,
+          }
+          console.log(`printing the requestData ${JSON.stringify(requestData)}`)
+
+          $.ajax({
+            type: 'POST',
+            url: endpoint,
+            contentType: 'application/json',
+            data: JSON.stringify(requestData),
+            success: function(data) {
+              updateCommentCount(button.dataset.idPost, data.comments)
+            },
+            error: function(err) {
+              console.log(err)
+            }
+          })
+
+          // send notification to post author:
+          socket.emit('comment-post', { 
+            postAuthorId: postAuthor, 
+            commentAuthor: button.dataset.commentAuthor,
+            postId: button.dataset.idPost
+          })
+
+          // clear the textarea after user submits commment
+          commentContent = ""
+        })
+      })
+
+      function updateCommentCount(postId, newCommentCount) {
+        console.log('running updatecommentcount')
+        const commentCountElement = $(`a.comment[data-id-post="${postId}"] span.comment-count`)
+        const allComments = document.getElementById("all-comments");
+
+        if (commentCountElement.length > 0) {
+          commentCountElement.text(newCommentCount);
+          fetchComments(postId)
+        }
+      }
+
+      function fetchComments(postId) {
+        console.log(`within fetchComments() and this is the postId ${postId}`)
+        const endpoint = `/post/${postId}/comments`
+        $.ajax({
+          type: 'GET',
+          url: endpoint,
+          success: function(data) {
+
+            if (data) {
+              printCommentData(data)
+            } else {
+              console.log('there are no comments in the db')
+            }
+        },
+        error: function (err) {
+          console.log(err)
+        }
+      })
+      }
+
+      function printCommentData(data) {
+        // console.log(`logging postID for the data: ${data.comments[0].postId}`)
+        const postId = data.comments[0].postId
+        const commentsContainer = document.querySelector('.post-comments-' + postId)
+        commentsContainer.innerHTML = ""
+
+        data.comments.forEach(comment => {
+          const commentElement = document.createElement("p");
+          commentElement.textContent = `${comment.author}: ${comment.content}`;
+          commentsContainer.appendChild(commentElement);
+        })
+      }
+    </script>
   </body>
   
   <%- include("./partials/footer.ejs") %>
