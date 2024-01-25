@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <%- include("../partials/header.ejs") %>
+  <%- include("../partials/nav.ejs") %>
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+  <body>
+    <div class="profile-picture-upload-container">
+        <h3>Profile Picture Upload</h3>
+        <form id="profile-form" enctype="multipart/form-data" method="POST">
+            <input type="file" id="file-input" name="profile-picture" accept="image/*">
+            <button type="button" onclick="uploadProfilePicture()">Upload</button>
+        </form>
+    </div>
+    <script>
+        function uploadProfilePicture() {
+            const fileInput = document.getElementById('file-input');
+            const formData = new FormData();
+            const endpoint = `/user/upload-profile-picture`
+            formData.append('profilePicture', fileInput.files[0]);
+
+            $.ajax({
+                type: 'POST',
+                url: endpoint,
+                data: formData,
+                processData: false,
+                contentType: false,
+                cache: false,
+                success: function(data) {    
+                    alert('Successfully uploaded')
+                    window.location.href = '/user/profile'
+
+                },
+                error: function(err) {
+                    console.log(err)
+                }
+            })
+            
+        }
+    </script>
+  </body>
+  
+  <%- include("../partials/footer.ejs") %>
+
+</html>

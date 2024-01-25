@@ -7,25 +7,23 @@
 
   <body>
     <br>
-    <p> You are signed in as <%= user.username %> </p>
+    <p> You are signed in as: <%= user.username %> </p>
     <hr>  
 
     <!-- TODO: display the 3 most recent comments only, and only display all the coments in a details page -->
     <!-- TODO: inclue a hyperlink that directs to user profile -->
-    <!-- TODO: only show posts from the people that the current user is following -->
     <% if (posts && posts.length > 0) { %>
       <% posts.forEach(post => { %>
         <div class="posts content">
           <div class="top-container">
-            <%= post._id %>
             <h3 class="title"><%= post.title %></h3>
             <p class="author">@<%= post.author %> </p>
           </div>
           <p class="content"><%= post.content %> </p>
           <p class="created-at"><%= new Date(post.createdAt).toLocaleString() %> </p>
-          <!-- TODO: change to variable name to numLikes and numComments? -->
           <div class="icon-container">
             <a class="like" data-id-post="<%= post._id %>" data-id-user="<%= user._id %>">
+              <!-- check if currUser has liked the post -->
               <img id="likeIcon" src="<%= likes.some(like => like.userId.toString() === user._id.toString() && like.postId.toString() === post._id.toString()) ? '/images/heart-fill.svg' : '/images/heart-unfill.svg' %>" alt="like icon">
               <span class="like-count"><%= post.likes %></span>
             </a>
@@ -34,8 +32,6 @@
             <span class="comment-count"><%= post.comments %></span>
           </a>
           </div>
-          <!-- TODO: pass in comments in router, go through comments, output ones that matches post._id -->
-          <!-- TODO: only display the comments from users that the currUser is following -->
           <div class="comment content">
             <div class="post-comments-<%= post._id %>" data-id-post="<%= post._id %>">
               <% if (comments && comments.length > 0) { %>
@@ -52,7 +48,6 @@
               <br>
               <form id="comment-form">
                 <label for="comment-text">Add a comment: </label>
-                <!-- issue = value is being retrieved from only one of posts, solution = append post id to comment text so that each post has its own comment textarea  -->
                 <textarea name="comment-text" id="comment-text-<%= post._id %>"></textarea>
                 <button class="submit-comment-btn" 
                   data-id-post="<%= post._id %>" 
@@ -79,7 +74,6 @@
       const commentIcon = document.querySelectorAll('a.comment')
       const commentBtn = document.querySelectorAll('.submit-comment-btn')
       
-      // TOOD: add comments to be more descriptive for the functions and say what they do
       // functions for like
       likeBtn.forEach(button => {
         button.addEventListener('click', (e) => {
@@ -109,6 +103,7 @@
         })
       }
 
+      // TODO: do not send notification if user likes their own post
       function handleLike(userId, postId) {
         console.log('now running handleLike')
         const endpoint = `/post/${postId}/like`
@@ -174,7 +169,6 @@
             commentContent: commentContent,
             userId: button.dataset.idUser,
           }
-          console.log(`printing the requestData ${JSON.stringify(requestData)}`)
 
           $.ajax({
             type: 'POST',
@@ -233,7 +227,6 @@
       }
 
       function printCommentData(data) {
-        // console.log(`logging postID for the data: ${data.comments[0].postId}`)
         const postId = data.comments[0].postId
         const commentsContainer = document.querySelector('.post-comments-' + postId)
         commentsContainer.innerHTML = ""

@@ -39,7 +39,6 @@ function handleUserConnection(socket) {
   })
 }
 
-// TODO: remove user from map when they disconnect
 // function handleUserDisconnection(socket) {
 //   // Assume you have a user ID associated with the socket (you need to implement this logic)
 //   const userId = getUserIdFromSocket(socket);
@@ -87,13 +86,10 @@ function handlefollowRequests(socket) {
       console.log(err)
     }
 
-    // find the followee from map and send notification to followee
     const followeeSocket = userSocketMap.get(followeeId)
 
-    // TODO: only send the follow request notification to the followee ID, not everyone connected to the socket
     if (followeeSocket) {
       followeeSocket.emit('receive-follow-request', { followerId })
-      console.log(`Sent follow notification to User ${followeeId}`);
     }
   })
 }
@@ -126,7 +122,7 @@ function handleAcceptFollowRequest(socket) {
     const notification = new Notification({
       sender: data.followeeId,
       recipient: data.followerId,
-      message: ' has accepted your request',
+      message: ' has accepted your follow request',
       type: 'follow-request-accepted',
     })
 

@@ -5,7 +5,7 @@
   <script src="/socket.io/socket.io.js"></script>
   <body>
     <br>
-    <h3> You are signed in as: <%= user.username %> <%= user._id %></h3>
+    <h3> You are signed in as: <%= user.username %> </h3>
     <!-- TODO: make user a hyperlink so that the profile can be visited -->
     <!-- TODO: change the status to read after viewing notifications -->
     <div class="notification content">
@@ -34,7 +34,6 @@
     </div>
     <br>
     <script>
-      //TODO: chage e.target.getAttribute to button.getAttribute to avoid errors, or do not use getAttribute completely and pass in the id within the endpoint URL
       const socket = io.connect('http://localhost:3000');
       const acceptBtns = document.querySelectorAll('button.accept-btn')
       const declineBtns = document.querySelectorAll('button.decline-btn')

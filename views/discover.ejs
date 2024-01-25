@@ -6,21 +6,30 @@
 
   <body>
     <br>
-    <!-- TODO: do not display current user on the discover page -->
-    <!-- TODO: display the users that the currentUser is already following on the discover page -->
-    follower username: <%= follower.username %>, follower id: <%= follower._id %>
+    <!-- TODO: do not display the users that the currentUser is already following on the discover page -->
     <% if (users && users.length > 0) { %>
       <% users.forEach(user => { %>
         <div class="user content">
             <h4 class="username ">username: <%= user.username %></h4>
-            <p class="member-since">member since: <%= user.memberSince %></p>
-            <button class='follow-btn' data-follower-id="<%= follower._id %>" data-followee-id="<%= user._id %>">Follow <%= user._id %> (<%= user.username %>)</button>
+            <p class="member-since">member since: <%= new Date(user.memberSince).toLocaleString() %></p>
+            <button class='follow-btn' data-follower-id="<%= follower._id %>" data-followee-id="<%= user._id %>">Follow </button>
           </div>
         </div>
       <% }) %>
     <% } %>
 
     <script>
+      const socket = io.connect('http://localhost:3000');
+
+      socket.on('connect', () => {
+        console.log('Connected to Socket.IO server');
+        socket.emit('user-connected', { userId: followerId })
+      })
+
+      socket.on('receive-follow-request', (data) => {
+        console.log(`You have a new follower: ${data.followerId}`);
+      })
+
       // TODO: separate the client socket.io code into a separate file?
       const followBtns = document.querySelectorAll('button.follow-btn')
       // initialize here because of scope
@@ -43,10 +52,7 @@
           
         });
       });
-    </script>
-
-    <script src="/socket/clientIndex.js"></script>
-    
+    </script>    
   </body>
   
   <%- include("./partials/footer.ejs") %>

@@ -9,12 +9,15 @@ const passport = require('passport');
 require('dotenv').config()
 const mongoose = require('mongoose')
 
-var indexRouter = require('./routes/index');
+var indexRouter = require('./routes/index'); // homepage
 var userRouter = require('./routes/user'); // profile, following, followers, notifications, posts, inbox
-const authRouter = require('./routes/auth')
-const postsRouter = require('./routes/post')
-const discoverRouter = require('./routes/discover')
-const { currentUserMiddleware, postsMiddleware, usersMiddleware, notificationsMiddleware, likesMiddleware, commentsMiddleware } = require('./middleware/dbMiddleware')
+const authRouter = require('./routes/auth') // log in, sign up
+const postsRouter = require('./routes/post') // create, read, delete, like, comment on posts
+const discoverRouter = require('./routes/discover') // find new users to follow 
+const { currentUserMiddleware, postsMiddleware, usersMiddleware, notificationsMiddleware, 
+  likesMiddleware, commentsMiddleware, followerMiddleware } = require('./middleware/dbMiddleware')
+const uploadMiddleware = require('./middleware/multerMiddleware') 
+
 
 var app = express();
 
@@ -44,11 +47,14 @@ app.use(usersMiddleware)
 app.use(notificationsMiddleware)
 app.use(likesMiddleware)
 app.use(commentsMiddleware)
+app.use(followerMiddleware)
+app.use(uploadMiddleware)
 app.use('/', indexRouter);
 app.use('/auth', authRouter)
 app.use('/post', postsRouter)
 app.use('/user', userRouter);
 app.use(discoverRouter);
+
 // static files served from /socket directory
 app.use('/socket', express.static('socket'));
 

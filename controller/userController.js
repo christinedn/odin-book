@@ -1,24 +1,91 @@
 const User = require('../models/user')
 const Notification = require('../models/notification')
 const Follower = require('../models/follower')
+const Post = require('../models/post')
+const Like = require('../models/like')
+const path = require('path')
 
-
-// when you are signed in as a certain user, you should be able to use all the functions below. however if you are viewing another users page, you should be able to see profile, following, followers, and posts. is this part of usersController? 
-// TODO: add in a middleware authUser to certain functions?
+// get num following and follower for current user
+const getProfileData = async (userId) => {
+    try {
+        const numFollowers = await Follower.countDocuments({ followee: userId, status: 'accepted'});
+        const numFollowing = await Follower.countDocuments({ follower: userId, status: 'accepted' });
+        const numPosts = await Post.countDocuments({ authorID: userId})
+        const allPosts = await Post.find({ authorID: userId})
+        return { numFollowers, numFollowing, numPosts, allPosts }
+    } catch (error) {
+        console.log(error)
+    }
+}
 
 // profile_get
-const profile_get = (req, res) => {
-    
+const profile_get = async (req, res) => {
+    try {
+        const { numFollowers, numFollowing, numPosts, allPosts } = await getProfileData(req.user)
+        res.render('user/profile', ({ title: "My profile", user: req.user, numFollowers, numFollowing, numPosts, allPosts, likes: req.likes}))
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+
+const upload_profile_picture_get = (req, res) => {
+    res.render('user/upload-profile-picture', ({ title: "Upload profile picture"}))
+}
+
+const profile_picture_post = (req, res) => {
+    console.log(`now in profile_picture_post`)
+    if (req.file) {
+        const filePath = req.file.path;
+        User.findById(req.user._id)
+        .then(user => {
+            user.profilePicture = filePath
+            return user.save()    
+        })
+        .then(() => {
+            res.json({ profilePicturePath: filePath })
+        })
+        .catch(err => console.log(err))
+    } else {
+        // No file was uploaded
+        console.log('error in profile_picture_post')
+    }
+}
+
+// returns the users that currUser is following
+const get_followings = async (userId) => {
+    try {
+        const followingIds = await Follower.find({follower: userId, status: 'accepted'})
+        const followingIdsArr = followingIds.map(elem => elem.followee)
+        const followingUsers = await User.find({_id: {$in: followingIdsArr}})
+        return followingUsers
+    }
+    catch (error) {
+        console.log(error)
+    }
 }
 
 // following_get - query the collection
-const following_get = (req, res) => {
-    
+const following_get = async (req, res) => {
+    const followings = await get_followings(req.user._id)
+    res.render('user/followings', ({ title: 'Following', followings}))
+}
+
+const get_followers = async (userId) => {
+    try {
+        const followersId = await Follower.find({followee: userId, status: 'accepted'})
+        const followersIdArr = followersId.map(elem => elem.follower)
+        const followerUsers = await User.find({_id: {$in: followersIdArr}})
+        return followerUsers
+    } catch (err) {
+        console.log(err)
+    }
 }
 
 // followers_get - query the collection
-const followers_get = (req, res) => {
-    
+const followers_get = async (req, res) => {
+    const followers = await get_followers(req.user._id)
+    res.render('user/followers', ({ title: 'Followers', followers}))
 }
 
 
@@ -56,12 +123,12 @@ const notification_decline = (req, res) => {
     })
 }
 
-// posts_get - query the collection
+// TODO: posts_get - query the collection
 const posts_get = (req, res) => {
     
 }
 
-// inbox_get 
+// TODO: inbox_get 
 const inbox_get  = (req, res) => {
     
 }
@@ -74,5 +141,7 @@ module.exports = {
     posts_get,
     inbox_get,
     notifications_delete,
-    notification_decline
+    notification_decline,
+    profile_picture_post,
+    upload_profile_picture_get
 }

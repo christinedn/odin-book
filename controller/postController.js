@@ -7,6 +7,7 @@ const Comment = require('../models/comment');
 const post_create_get = (req, res) => {
     res.render('post/create', ({ title: "Create a post"}))
 }
+
 // TODO: allow the user to save as draft
 // post_create_post
 const post_create_post = (req, res) => {
@@ -41,7 +42,6 @@ const post_delete = (req, res) => {
     })
 }
 
-// TODO: use AJAX to make asynchronous request to the server and update the like count dynamically on the client side without refreshing the whole page
 const post_like = (req, res) => {
     const userId = req.body.userId
     const postId = req.body.postId
@@ -66,7 +66,6 @@ const post_like = (req, res) => {
     .catch(err => console.log(err))
 }
 
-// TODO: use AJAX to make asynchronous request to the server and update the like count dynamically on the client side without refreshing the whole page
 const post_unlike = (req, res) => {
     const userId = req.body.userId
     const postId = req.body.postId
@@ -133,3 +132,4 @@ module.exports = {
     post_comment,
     comments_get
 }
+

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <%- include("../partials/header.ejs") %>
+  <%- include("../partials/nav.ejs") %>
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+  <body>
+    <div class="profile-content">
+      <div class="left">
+        <div class="profile-picture-container">
+          <!-- remove 'public' from prefix -->
+          <% let filePath = user.profilePicture.replace('public','') %>
+          <img class="profile-picture" src="<%= filePath %>" alt="profile picture">
+        </div>
+        <button id="upload-button">Upload a profile picture</button>
+      </div>
+      <div class="right">
+        <p> Username: <%= user.username %></p>
+        <a href="/user/followings"> Following: <%= numFollowing %></a>
+        <br>
+        <br>
+        <a href="/user/followers"> Followers: <%= numFollowers %></a>
+    <p> Number of posts: <%= numPosts %></p>
+      </div>
+    </div>
+    <br>
+    <hr>
+    <p> Your posts: </p>
+    <% if (allPosts && allPosts.length > 0) { %>
+        <% allPosts.forEach(post => { %>
+          <div class="posts content">
+            <div class="top-container">
+              <h3 class="title"><%= post.title %></h3>
+              <p class="author">@<%= post.author %> </p>
+            </div>
+            <p class="content"><%= post.content %> </p>
+            <p class="created-at"><%= new Date(post.createdAt).toLocaleString() %> </p>
+            <div class="icon-container">
+              <a class="like" data-id-post="<%= post._id %>" data-id-user="<%= user._id %>">
+                <img id="likeIcon" src="<%= likes.some(like => like.userId.toString() === user._id.toString() && like.postId.toString() === post._id.toString()) ? '/images/heart-fill.svg' : '/images/heart-unfill.svg' %>" alt="like icon">
+                <span class="like-count"><%= post.likes %></span>
+              </a>
+            <a class="comment" data-id-post="<%= post._id %>">
+              <img src="/images/comment.svg" alt="comment icon">
+              <span class="comment-count"><%= post.comments %></span>
+            </a>
+            </div>
+        <% }) %>
+    <% } else { %> 
+      <p>There are no posts to display..</p>
+    <% } %>
+    
+    <script>
+        const uploadBtn = document.getElementById('upload-button')
+        uploadBtn.addEventListener('click', () => {
+          window.location.href = "/user/upload-profile-picture"
+        })
+        function uploadProfilePicture() {
+            const fileInput = document.getElementById('file-input');
+            const formData = new FormData();
+            const endpoint = `/user/upload-profile-picture`
+            formData.append('profilePicture', fileInput.files[0]);
+
+            $.ajax({
+                type: 'POST',
+                url: endpoint,
+                data: formData,
+                processData: false,
+                contentType: false,
+                cache: false,
+                success: function(data) {    
+                    updateProfilePicture(data.profilePicturePath)
+                },
+                error: function(err) {
+                    console.log(err)
+                }
+            })
+            
+        }
+
+        function updateProfilePicture(filePath) {
+            // remove 'public' from beginning of filepath
+            let tempFilePath = filePath.substring('public'.length);
+            $('.profile-picture img').attr('src', tempFilePath)
+
+        }
+    </script>
+  </body>
+  
+  <%- include("../partials/footer.ejs") %>
+
+</html>

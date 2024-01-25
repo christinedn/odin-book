@@ -3,7 +3,7 @@ const Post = require('../models/post')
 const Notification = require('../models/notification')
 const Like = require('../models/like')
 const Comment = require('../models/comment')
-// const Follower = require('../models/follower')
+const Follower = require('../models/follower')
 // const Message = require('../models/message')
 
 const currentUserMiddleware = (req, res, next) => {
@@ -74,6 +74,18 @@ const commentsMiddleware = (req, res, next) => {
     })
 }
 
+const followerMiddleware = (req, res, next) => {
+    Follower.find() 
+    .then((follower) => {
+        req.follower = follower
+        next()
+    })
+    .catch((err) => {
+        console.log(err)
+        next();
+    })
+}
+
 
 module.exports = {
     currentUserMiddleware,
@@ -81,5 +93,6 @@ module.exports = {
     usersMiddleware,
     notificationsMiddleware,
     likesMiddleware,
-    commentsMiddleware
+    commentsMiddleware,
+    followerMiddleware
 }

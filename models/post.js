@@ -17,6 +17,7 @@ const postSchema = new Schema({
         type: Boolean, 
         default: true 
     },
+    // TODO: change to authorId
     authorID: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'User' 
